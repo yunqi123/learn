@@ -1,0 +1,638 @@
+一、	Lambda表达式
+1.	Lambda就是一种运算法，用于表示匿名函数或闭包，后面跟着lambda算式的一种使用。
+2.	为什么需要lambda表达式
+1)	在Java中，我们无法将函数作为参数传递给一个方法，也无法声明返回一个函数的方法。
+2)	在JavaScript中，函数参数是一个函数，返回值是另一个函数的情况是非常常见的。JavaScript是一门非常典型的函数式语言，同时也是一门面向对象的语言。
+3.	Lambda表达式的基本结构
+参数列表 -> 执行体
+(param1, param2, param3…) -> {}
+4.	函数式接口的实例可以通过lambda表达式、方法引用（method reference）来创建或者是构造方法引用来去创建。
+public class ListDemo {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+        list.add("aa");
+        list.forEach(new Consumer<String>() {
+            @Override
+            public void accept(String s) {
+                System.out.println(s);
+            }
+        });
+
+        //1.lambda表达式
+        list.forEach(s -> System.out.println(s));
+
+        //2.方法引用
+        list.forEach(System.out::println);
+    }
+}
+
+5.	关于函数式接口
+public class FunctionalInterfaceDemo {
+    public void myTest(MyInterface myInterface) {
+        System.out.println(1);
+        myInterface.test();
+        System.out.println(2);
+    }
+
+    public static void main(String[] args) {
+        FunctionalInterfaceDemo functionalInterfaceDemo = new FunctionalInterfaceDemo();
+        functionalInterfaceDemo.myTest(() -> System.out.println("my test"));
+
+        //可以认为lambda表达式就是函数式接口的一个实现，此处会生成MyInterface的一个实例
+        MyInterface myInterface = () -> System.out.println("my test");
+        System.out.println(myInterface.getClass());
+    }
+}
+
+1)	如果一个接口只有一个抽象方法，那么该接口就是一个函数式接口
+2)	如果我们在某个接口上声明了FunctionalInterface注解，那么编译器就会按照函数式接口的定义来要求该接口
+3)	如果某个接口只有一个抽象方法，但我们并没有给该接口声明FunctionalInterface注解，那么编译器依旧会将该接口看作是函数式接口
+4)	如果一个接口定义了很多抽象方法，但是只有一个抽象方法是本接口自定义的，其他的方法可以由这个接口的子类直接或间接地继承自其他类从而拥有默认实现，那么这个接口也是一个函数式接口
+例如子类在实现此接口时，因为子类的toString()方法可以java.lang.Object类继承过来，所以可以不需要再实现toString()，子类只必须实现test()，因此MyInterface就是一个函数时接口。
+@FunctionalInterface
+interface MyInterface {
+    void test();
+    String toString();
+}
+
+5)	接口的默认方法一方面保证了jdk8新特性的加入（如lambda表达式、函数式接口），同时又确保了jdk8与老版本代码的完全兼容
+6.	Lambda表达式的作用
+1)	Lambda表达式为Java添加了缺失的函数式编程特性，使我们能将函数当做一等公民来看待
+	在Java以前的版本里面，方法从来都是依附于类而存在的，不可能有单独的一个方法独立存在。
+	有了lambda表达式，可以将方法作为一个参数在方法当做传递。
+2)	在将函数作为一等公民的语言中，lambda表达式的类型是函数。但在Java中，lambda表达式是对象，他们必须依附于一类特别的对象类型——函数式接口（functionnal interface）
+7.	集合迭代
+1)	外部迭代：通过外部迭代器去遍历目标集合
+例如普通的循环语句通过下标访问集合元素、增强的for等
+2)	内部迭代
+通过lambda表达式将集合中的元素一个个遍历
+default void forEach(Consumer<? super T> action) {
+    Objects.requireNonNull(action);
+    for (T t : this) {
+        action.accept(t);
+    }
+}
+8.	Lambda表达式的类型通过上下文来确定。
+可以认为lambda是一种匿名函数，虽然它实际上是一个对象
+9.	Jdk中为集合增加了两个方法：stream()（串行流、单线程）、parallerStream()（并行流，多线程）
+1)	stream()返回一个串行流，将当前集合作为这个串行流的源
+	与Linux中的管道类似
+2)	
+10.	对于流来说，除了有并行流和串行流这种区分之外，它还有另外一个维度的区分，分为中间流、节点流
+1)	中间流：中间操作的流，即这个操作本身又返回一个stream，还可以继续对这个stream进行操作
+2)	节点流：这个操作本身已经得到最后的结果，不能在进行流的串联了。
+3)	流必须要有一个源，这个源就是流所要操作的目标数据
+//map()需要一个方法作为参数：这个方法可以描述为给定一个输入，得到一个输出。在此处，输入就是调用了方法的对象，输出是return的大写字符串
+list.stream().map(e -> e.toUpperCase()).forEach(e -> System.out.println(e));
+list.stream().map(String::toUpperCase).forEach(System.out::println);
+
+4)	
+11.	Java Lambda概要
+1）	Java Lambda表达式是一种匿名函数，它是没有声明的方法，即没有访问修饰符、返回值声明和名字。
+2）	Lambda表达式作用
+	传递行为，而不仅仅是值
+	提升抽象层次：方法的具体实现由调用者决定
+	API重用性更好
+	更加灵活
+12.	Java Lambda表达式的基本语法
+1） (argument) -> {body}
+	(arg1, arg2) -> {body}
+	(type1 arg1, type2 arg2) -> {body} 一般来说，编译器在编译时可以推断出参数类型，因此参数类型可以省略
+	(a, b) -> {return a + b;}
+	() -> {SysTem.out.print(“hello”);}
+	(s) -> {SysTem.out.print(s);}
+	() -> 42   不接收参数，返回42
+2） 一个lambda表达式可以有零个或多个参数
+3） 参数类型既可以明确声明，也可以根据上下文来推断
+如： (int a) 和 (a) 效果相同
+4） 所有参数虚包含在圆括号内，参数之间用逗号相隔
+5） 空的圆括号代表参数为空
+() -> 42
+6） 当只有一个参数，且其类型可以推导时，圆括号()可省略
+a -> 42
+7） Lambda表达式的主体可包含零条或多条语句。
+8） 如果lambda表达式的主体只有一条语句时，花括号 {} 可省略。匿名函数的返回值类型与该主体表达式一致。
+9） 如果lambda表达式的主体包含一条以上语句，则表达式必须包含在花括号{}中（形成代码块）。匿名函数的返回值类型与代码块的返回类型一致，若没有返回则为空。
+	Expression形式：() -> o1.copareTo(02)
+	Statement形式：() -> {retrun o1.copareTo(02);}
+	Body只有一条语句时，这两种方式都可以，多条语句必须使用statement形式。
+10） 
+13.	函数式接口
+1）	函数式接口是只包含一个抽象方法声明的接口
+2）	Java.lang.Runnable就是一种函数式接口，在Runnable接口中只声明了一个方法void run()
+3）	每个lambda表达式都能隐式地赋值给函数式接口
+14.	
+二、	Function：一个输入得到一个输出的接口
+1.	apply()在使用时是由使用者进行传递的：传递行为
+R apply(T t);
+
+public class FunctionDemo1 {
+    public static void main(String[] args) {
+        FunctionDemo1 functionDemo1 = new FunctionDemo1();
+        System.out.println(functionDemo1.compute(1, value -> 2 * value));  //expression
+        System.out.println(functionDemo1.compute(2, value -> {return 5 + value;})); //statement
+        System.out.println(functionDemo1.compute(5, value -> value * value));
+
+        System.out.println(functionDemo1.convert(5, value -> value + "hello world"));
+    }
+
+    /*
+    apply()在使用时是由使用者进行传递的：传递行为
+     */
+    public int compute(int a, Function<Integer, Integer> function) {
+        int result = function.apply(a);
+        return result;
+    }
+
+    public String convert(int a, Function<Integer, String> function) {
+        return function.apply(a);
+    }
+}
+
+2.	高阶函数
+1）	定义：如果一个函数接收一个函数作为参数，或者返回一个函数作为返回值，那么该函数就叫做高阶函数
+2）	compose()：先应用参数before function的apply()，得到一个处理后的结果，再对这个处理后的结果进行当前对象的apply()
+default <V> Function<V, R> compose(Function<? super V, ? extends T> before) {
+    Objects.requireNonNull(before);
+    return (V v) -> apply(before.apply(v));
+}
+
+	返回一个复合（组合）的函数（可以认为是Function的一个实例）
+这个function实例的参数列表是(V v)，方法体是apply(before.apply(v))，因此，这个实例调用apply(a)时，会执行apply(before.apply(a))。
+即首先将输入应用到before上（作为before的apply()的参数），得到一个结果，再将结果应用到当前对象上。
+	将两个function组合在一起。它首先会对输入参数调用before function（即调用before的apply()对输入进行处理），处理后得到一个输出结果，将这结果传递给当前对象的apply()，形成两个apply() function的串联
+	也可以对第二个apply()返回值做相同的处理，由此可以形成多个apply() function的串联调用（对输出结果继续compose()）
+3）	andThen()：先应用当前对象function的apply()，再应用参数after function的apply()
+default <V> Function<T, V> andThen(Function<? super R, ? extends V> after)
+
+	与compise()相反，也是返回一个复合（组合）的函数。
+	这个组合的函数首先会对输入参数应用当前的function，得到输出结果，然后再对这个输出结果应用参数中的after function
+	对输出结果继续andThen()，则可实现多个function的串联
+4）	identity()：返回一个Function，这个Function总是会去返回输入参数，即输入参数是什么，这个Function本身就返回什么。
+static <T> Function<T, T> identity()
+5）	因为compose()和andThen()都是Function实例方法
+3.	
+三、	BiFunction（Bidirectional 双向）：接收两个参数，得到一个结果
+R apply(T t, U u);
+
+1.	andThen()：返回一个组合函数，该函数首先将此函数应用于其输入，然后将after函数应用于结果。 如果对任一函数的评估引发异常，则将其转发给组合函数的调用者
+public class FunctionDemo2 {
+    public static void main(String[] args) {
+        FunctionDemo2 functionDemo2 = new FunctionDemo2();
+        System.out.println(functionDemo2.compute(2, value -> value * 3, value -> value * value));
+        System.out.println(functionDemo2.compute2(2, value -> value * 3, value -> value * value));
+        System.out.println(functionDemo2.compute3(1, 2, (a, b) -> a + b));
+        System.out.println(functionDemo2.compute4(2, 3, (a, b) -> a - b, a -> a * 2));
+    }
+
+    public int compute(int a, Function<Integer, Integer> function1, Function<Integer, Integer> function2) {
+        return function1.compose(function2).apply(a);
+    }
+
+    public int compute2(int a, Function<Integer, Integer> function1, Function<Integer, Integer> function2) {
+        return function1.andThen(function2).apply(a);
+    }
+
+    public int compute3(int a, int b, BiFunction<Integer, Integer, Integer> function) {
+        return function.apply(a, b);
+    }
+
+    public int compute4(int a, int b, BiFunction<Integer, Integer, Integer> biFunction, Function<Integer, Integer> function) {
+        return biFunction.andThen(function).apply(a, b);
+    }
+}
+ 
+public class PersonTest {
+    public static void main(String[] args) {
+        Person person = new Person("zhangsan", 1);
+        Person person1 = new Person("lisi", 9);
+        Person person2 = new Person("wangwu", 99);
+        List<Person> list = Arrays.asList(person, person1, person2);
+
+        PersonTest personTest = new PersonTest();
+        List<Person> personResult = personTest.getPersonByUsername("zhangsan", list);
+
+        personResult.forEach(p -> System.out.println(p.getUsername()));
+
+        personResult = personTest.getPersonByAge2(1, list);
+        personResult.forEach(p2 -> System.out.println(p2.getUsername()));
+
+        personResult = personTest.getPersonByAge3(9, list,
+            (age, personList) -> personList.stream().filter(p4 -> p4.getAge() > age).collect(Collectors.toList()));
+        personResult.forEach(p5 -> System.out.println(p5.getUsername()));
+    }
+
+    public List<Person> getPersonByUsername(String username, List<Person> persons) {
+        return persons.stream().filter(person -> person.getUsername().equals(username)).collect(Collectors.toList());
+    }
+
+    public List<Person> getPersonByAge(int age, List<Person> persons) {
+        return persons.stream().filter(person -> person.getAge() == age).collect(Collectors.toList());
+    }
+
+    public List<Person> getPersonByAge2(int age, List<Person> persons) {
+        BiFunction<Integer, List<Person>, List<Person>> biFunction = (ageOfPerson, personList)
+            -> personList.stream().filter(person -> person.getAge() > ageOfPerson).collect(Collectors.toList());
+
+        return biFunction.apply(age, persons);
+    }
+
+    public List<Person> getPersonByAge3(int age, List<Person> persons, BiFunction<Integer, List<Person>, List<Person>> biFunction) {
+        return biFunction.apply(age, persons);
+    }
+}
+
+2.	如何合理使用lambda
+1）	原来通过面向对象的方式，定义一个个方法时，这些方法的逻辑在代码写完后就已经明确了。
+2）	在函数式编程中，方法的实现变成了一种抽象的概念，而方法的具体实现是由使用者（调用者）来提供的。
+3.	
+四、	Predicate
+1.	test()
+2.	and()：
+default Predicate<T> and(Predicate<? super T> other)
+
+1）	返回一个复合的Predicate，它表示一种短路的逻辑与：当前的Predicate与参数中的Predicate的短路逻辑与。
+2）	当去计算复合的Predicate时，如果当前的Predicate（调用and的对象）是false时，参数中的Predicate就不会被计算。
+3）	任何一个Predicate抛异常时，其他的都不会再去计算，此逻辑在Function、BiFunction中也是一样。
+3.	negate()：返回一个Predicate，它表示与当前Predicate的逻辑的反
+default Predicate<T> negate()
+
+4.	or()：
+default Predicate<T> or(Predicate<? super T> other)
+1）	返回一个复合的Predicate，它表示当前Predicate与参数Predicate的逻辑或。
+2）	在计算复合的Predicate时，如果当前的Predicate为true时，则不会再去计算参数中的Predicate
+5.	equal()
+static <T> Predicate<T> isEqual(Object targetRef)
+
+1）	返回一个Predicate，这个Predicate用于测试是否两个参数是相等的，根据Objects.equal()去判断
+2）	判断equal()方法的参数与返回的这个Predicate调用的test()中的参数是否相等
+
+public class PredicateDemo {
+    public static void main(String[] args) {
+        List<Integer> list = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+        PredicateDemo predicateDemo = new PredicateDemo();
+        predicateDemo.conditionFilter(list, i -> 0 ==  i % 2);
+        predicateDemo.conditionFilter(list, i -> 0 !=  i % 2);
+        predicateDemo.conditionFilter(list, i -> 5 < i);
+        predicateDemo.conditionFilter(list, i -> true);
+        predicateDemo.conditionFilter(list, i -> false);
+        predicateDemo.conditionFilter2(list, i -> 5 < i, i -> 0 == i % 2);
+
+        System.out.println(predicateDemo.isEqual("test").test("a"));
+    }
+
+    public void conditionFilter(List<Integer> list, Predicate<Integer> predicate) {
+        list.forEach(i -> {
+            if (predicate.test(i)) {
+                System.out.println(i);
+            }
+        });
+    }
+
+    public void conditionFilter2(List<Integer> list, Predicate<Integer> predicate, Predicate<Integer> predicate2) {
+        list.forEach(i -> {
+            if (predicate.and(predicate2).negate().test(i)) {
+                System.out.println(i);
+            }
+        });
+    }
+
+    public Predicate<String> isEqual(Object object) {
+        return Predicate.isEqual(object);
+    }
+}
+
+五、	Supplier，提供商、供应者
+1.	表示一个结果的供应者，供应结果的。不要求每次提供的结果都不能相同。
+2.	get()：不接收任何参数，返回一个结果。
+T get();
+
+3.	Supplier在实际开发里一般用于什么场合
+1）	可用于工厂，存在不接收参数返回一个结果的情况时。
+2）	
+public class SupplierDemo {
+    public static void main(String[] args) {
+        Supplier<String> supplier = () -> "hello world";
+        System.out.println(supplier.get());
+
+        Supplier<Student> supplier1 = () -> new Student();
+        System.out.println(supplier1.get().getUsername());
+
+        //构造方法引用，编译器会自动去对应的类里面去寻找符合条件的构造方法，因此要求对应类必须有无参的构造方法
+        Supplier<Student> supplier2 = Student::new;
+        System.out.println(supplier2.get().getUsername());
+    }
+}
+
+4.	
+六、	BinaryOperator
+1.	BinaryOperator代表的是一种操作，这种操作是针对于相同类型的两个操作数，它会生成与操作数相同类型的结果
+1）	BiFunction是Function的一种具化，BinaryOperator是BiFunction的一种具化
+2）	接收两个参数，返回一个结果，结果的类型和操作数的类型是相同的
+BinaryOperator<T> extends BiFunction<T,T,T>
+
+3）	minBy()：返回一个BinaryOperator，这个BinaryOperator根据指定的Compartor返回两个参数中更小的那个
+public static <T> BinaryOperator<T> minBy(Comparator<? super T> comparator)
+
+4）	maxBy()：逻辑与minBy()相同，不同的是返回两个参数中较大的那个。
+
+5）	
+2.	
+七、	Consumer：接收一个参数，不返回结果
+八、	Optional
+1.	NPE（null pointer exception）
+2.	基于值（value-based）的类
+1）	final、不可变的。但是允许不可的对象里面包含可变对象的引用
+2）	它会有对toString()、eqeuals()、hashCode()的实现，这个实现仅仅是根据实例本身的状态来计算出来的，而并不是通过其他的对象或变量来计算
+3）	实例之间不会使用==等操作来判断想等性，仅仅是通过equals()方法。
+4）	它不会拥有可被访问的构造方法，实例的创建是通过工厂的方法来创建的。工厂方法不保证实例的一致性：第一次创建和第二次创建的实例并不保证是一样的。
+5）	如果equals()为true，则两个实例是可替换的。
+
+3.	Optional本身是一个容器，里面存储一个值value
+4.	通过Optional如何构造对象：通过Optional提供的工厂方法
+1）	of()
+public static <T> Optional<T> of(T value)
+	构造出一个不为空的Optional对象
+2）	ofNullable()
+public static <T> Optional<T> ofNullable(T value)
+	构造一个可空的Optional对象
+3）	empty()
+public static<T> Optional<T> empty()
+	构造出一个容器里面为空（value=null）的Optional对象
+4）	isPresident()：
+判断对象是否存在
+5）	ifPersident()：
+public void ifPresent(Consumer<? super T> consumer)
+判断值是否存在，如果不存在则什么都不做，如果存在则执行参数Consumer的实例方法
+6）	orElse()：
+public T orElse(T other)
+如果容器中有值则返回容器中的值，如果没有则返回other
+7）	orElseGet()
+public T orElseGet(Supplier<? extends T> other)
+如果容器中无值，则调用参数Supplier的get()获取值
+8）	orElseThrow()
+public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X
+如果容器中的值不存在，则抛出参数Supplier的get()获取到的异常
+9）	
+5.	不要将Optional作为方法参数或在类当中声明Optional类型的成员变量，因为Optional是不能被序列化的，没有实现序列化的接口。
+1）	Optional通常只作为方法的返回值，用于规避空指针异常这类问题的。
+public class OptionalDemo {
+    public static void main(String[] args) {
+        Optional<String> optional = Optional.of("hello");
+
+        //不推荐这样使用
+        if (optional.isPresent()) {
+            System.out.println(optional.get());
+        }
+
+        //推荐这样使用，使用函数式方式
+        optional.ifPresent(item -> System.out.println(item));
+
+        System.out.println("----------");
+        System.out.println(optional.orElse("world"));
+        System.out.println(optional.orElseGet(() -> "world"));
+
+        Employee employee = new Employee();
+        employee.setName("zhangsan");
+        Employee employee2 = new Employee();
+        employee2.setName("lisi");
+        Company company = new Company();
+        company.setName("company1");
+        List<Employee> employees = Arrays.asList(employee, employee2);
+        company.setEmployees(employees);
+
+        //如果employees为空则返回新的list
+        Optional<Company> optionalCompany = Optional.ofNullable(company);
+        System.out.println(optionalCompany.map(theCompany -> theCompany.getEmployees()).orElse(Collections.emptyList()));
+    }
+}
+
+2）	
+6.	
+
+方法引用
+一、	方法引用
+1.	方法引用与lambda表达式的关系
+1）	方法引用可以认为是lambda表达式的一个语法糖
+语法糖：它本身并没有提供新的功能，只不过通过一种更加简洁或更加方便的方式让使用者调用。
+2）	在很多时候我们使用lambda表达式能去实现的功能，如果这个功能恰恰有专门的一个方法就能表示或实现出来，那么就可以使用通过方法引用的方式来去替换掉lambda表达式，使得代码看起来更加精简
+3）	方法引用本身是些局限性的，并不是很通用的一种结构。很多时候通过lambda表达式编写的代码是不能使用方法引用来替换的。
+4）	当lambda表达式方法体里的实现恰好是一个现有的已经存在的方法提供的功能，就可以使用方法引用来替换lambda表达式。
+2.	我们可以将方法引用看作是一个函数指针（function pointer）
+3.	方法引用分类，共分为四类
+1）	类名:: 静态方法名
+等价于lambda表达式 
+List<String> list = Arrays.asList("hello", "world", "hello world");
+list.forEach(item -> System.out.println(item));
+
+//1）类名::静态方法名
+list.forEach(System.out::println);
+
+2）	引用名::实例方法名
+
+3）	类名::实例方法名
+	这样才能做到使用只有一个参数的实例方法实例化具有两个参数的方法的接口
+Lambda表达式的第一个参数调用实例方法，第二个参数作为实例方法的参数，因此两个参数的lambda表达式可替换为类名::实例方法名，此时也可实例化函数式接口
+	可以实例化的关键是实例方法是由谁调用的，一定是某个对象来调用的。由函数式接口的lambda表达式所接收的第一个参数来去调用的这个实例方法，如果接收多个参数，那么除了第一个参数，其他参数会作为实例方法的参数传递进实例方法。
+4）	构造方法引用：类名::new
+	实际上就是调用构造方法来生成一个新的对象
+	具有多个重载的构造方法时，Java编译器可以自己推断出来到底引用的是哪一个
+5）	
+public class MethodReferenceDemo {
+    public static void main(String[] args) {
+        List<String> list = Arrays.asList("hello", "world", "hello world");
+        list.forEach(item -> System.out.println(item));
+
+        //1）类名::静态方法名
+        list.forEach(System.out::println);
+
+        Student1 zhangsan = new Student1("zhangsan", 1);
+        Student1 lisi = new Student1("lisi", 90);
+        Student1 wangwu = new Student1("wangwu", 9);
+        List<Student1> student1s = Arrays.asList(zhangsan, lisi, wangwu);
+        student1s.sort((student1, student2) -> Student1.compareStudentByScore(student1, student2));
+        student1s.forEach(student -> System.out.println(student.getScore()));
+
+        student1s.sort(Student1::compareStudentByScore);
+        student1s.forEach(student1 -> System.out.println(student1.getScore()));
+
+        StudentComparator studentComparator = new StudentComparator();
+        student1s.sort((student1, student2) -> studentComparator.compareStudentByScore(student1, student2));
+        student1s.forEach(student -> System.out.println(student.getScore()));
+
+        //2）引用名::实例方法名
+        student1s.sort(studentComparator::compareStudentByScore);
+        student1s.forEach(student1 -> System.out.println(student1.getScore()));
+
+        //3）类名::实例方法名
+        student1s.sort(Student1::compareByScore);
+        student1s.forEach(student1 -> System.out.println(student1.getScore()));
+
+        List<String> cities = Arrays.asList("qingdao", "chongqing", "tianjin", "beijing");
+        Collections.sort(cities, (city1, city2) -> city1.compareTo(city2));
+        cities.forEach(city -> System.out.println(city)); //与下面一行等价
+        Collections.sort(cities, String::compareTo);
+
+        //4）构造方法引用：类名::new   类的构造方法一定会返回当前类的实例
+        MethodReferenceDemo methodReferenceDemo = new MethodReferenceDemo();
+        System.out.println(methodReferenceDemo.getString(String::new)); //public String()
+        System.out.println(methodReferenceDemo.getString2("hello", String::new)); //public String(String original)
+    }
+
+    public String getString(Supplier<String> supplier) {
+        return supplier.get() + "test";
+    }
+
+    public String getString2(String str, Function<String, String> function) {
+        return function.apply(str);
+    }
+}
+
+4.	接口的默认方法可被实现此接口的子类继承过来。
+1）	如果子类实现了多个接口，且这些接口中具有相同的默认方法，这时候子类必须重写这个默认方法。否则编译器会报错，无法识别子类继承谁的默认方法。
+public class DefaultMethodDemo implements MyInterface1, MyInterface2{
+
+    @Override
+    public void myMethod() {
+        MyInterface1.super.myMethod();
+    }
+}
+
+interface MyInterface1 {
+    default void myMethod() {
+        System.out.println("MyInterface1");
+    }
+}
+
+interface MyInterface2 {
+    default void myMethod() {
+        System.out.println("MyInterface2");
+    }
+}
+
+2）	接口interface1和interface2具有相同的默认方法。如果接口interface1有一个实现类，接口interface2没有实现类，子类继承了interface1的实现类，同时实现了接口interface2，那么子类中的默认方法到底取哪个接口的？
+	Java有一个设定：实现类的优先级要比接口的优先级要高一些
+认为实现类更具体，更贴合实际需求。接口本身的含义就是一种锲约。所有子类取的是interface1实现类的。
+
+public class DefaultMethodDemo extends MyInterfaceImpl implements MyInterface2{
+    public static void main(String[] args) {
+        DefaultMethodDemo defaultMethodDemo = new DefaultMethodDemo();
+        defaultMethodDemo.myMethod(); //MyInterfaceImpl
+    }
+}
+
+interface MyInterface1 {
+    default void myMethod() {
+        System.out.println("MyInterface1");
+    }
+}
+
+interface MyInterface2 {
+    default void myMethod() {
+        System.out.println("MyInterface2");
+    }
+}
+
+class MyInterfaceImpl implements MyInterface1 {
+    @Override
+    public void myMethod() {
+        System.out.println("MyInterfaceImpl");
+    }
+}
+	
+3）	
+5.	什么情况下使用方法引用：
+1）	方法引用的使用场景是很明确的，lambda表达式只有一行代码，并且这行代码恰好调用的方法是已经存在、现成的，那么就可以使用方法引用来去替换掉lambda表达式。除此以外，方法引用是不能使用的。
+2）	
+6.	Jdk8为什么为接口引入默认方法（default method）的概念
+1）	引入新特性的同时要保证向后兼容。
+2）	因此引入默认方法的目的就是为了能保证向后兼容，避免对原有代码带来破坏性影响
+	如List的新增的sort()，如果不是以默认方法的形式提供的，那么可能会对以前使用List的代码造成破坏性的影响：当子类实现了List类时，如果新增了方法，那么子类势必也需要实现这个新增的方法。但是子类是已有的代码，已经存在那了，不可能因为更换了jdk版本而再去修改子类，此时子类会编译失败。
+	
+3）	
+7.	
+二、	Stream 流
+1.	Stream在jdk8中是一个与lambda表达式相伴相生的一个极其重要的概念。通过流的方式，我们可以更好地操作集合。而且可以以一种函数化编程的方式以更为流畅、符合自然语言处理的这样一种语义来做操作一个流。
+2.	Jdk8所提供的函数式接口大多数位于java.util.function包中，所提供的Stream大多数位于java.util.stream包中
+3.	为了执行计算，流操作被组合成一个流管道。 流管道由源（可能是数组、集合、生成器函数、I/O 通道等）、零个或多个中间操作（将流转换为另一个流，例如filter(Predicate) ) 和终止操作（产生结果或副作用，例如count()或forEach(Consumer) ）。 流是惰性的，对源数据的计算只在终止操作发起的时候才会被执行，源里的元素只在需要时被消费
+4.	流由三部分构成
+1）	源：流里元素的来源
+2）	0个或多个中间操作：操作的是源，会将当前的流转化为另一个流
+3）	终止操作：得到最后的结果
+5.	流操作的分类：一共有两种类型
+1）	惰性求值
+stream.xxx().yyy().zzz().count()
+	xxx().yyy().zzz()这些都是中间操作（惰性求值），只有真正地去调用count()时，这些操作才会被执行
+	stream.xxx().yyy().zzz()，这行代码是不会被执行的，因为没有终止操作
+2）	及早求值
+	及早求值就是立刻把结果得到
+	count()就是及早求值
+3）	在流的整个计算过程当中，及早求值只会有一个，就是最后。
+
+public class StreamDemo {
+    public static void main(String[] args) {
+        //得到Stream的三种常用方法
+        Stream<String> stream = Stream.of("hello", "world", "hello world");
+
+        String[] myArray = new String[] {"hello", "world", "world"};
+        Stream<String> stream2 = Stream.of(myArray);
+        Stream<String> stream3 = Arrays.stream(myArray);
+
+        List<String> list = Arrays.asList(myArray);
+        Stream<String> stream4 = list.stream();
+    }
+}
+
+public class IntStreamDemo {
+    public static void main(String[] args) {
+        IntStream.of(new int[]{1, 2, 4, 4, 5, 6}).forEach(System.out::println);
+
+        //构造一个以start开头，以end结尾单不包含end的IntStream  左闭右开区间 3到7
+        IntStream.range(3, 8).forEach(System.out::println);
+
+        //闭区间 3到8
+        IntStream.rangeClosed(3, 8).forEach(System.out::println);
+
+        //将一个整数集合每个值乘以2后再求和
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6);
+        System.out.println(list.stream().map(i -> 2 * i).reduce(0, Integer::sum));
+    }
+}
+4）	
+6.	流可以带来那些简化
+1)	Collection提供了新的stream()
+2)	流不存储值，通过管道的方式获取值
+3)	本质是函数式，对流的操作会生成一个结果，不过并不会修改底层的数据源。集合可以作为流的底层数据源
+4)	延迟查找，很多流操作（过滤、映射、排序等）都可以延迟实现
+public static void main(String[] args) {
+    Stream<String> stream = Stream.of("hello", "world", "hello worle");
+    String[] strings = stream.toArray(length -> new String[length]);
+    Arrays.asList(strings).forEach(System.out::println);
+
+    //方法引用
+    String[] strings1 = stream.toArray(String[]::new);
+
+    //将一个流转成list
+    List<String> list = stream.collect(Collectors.toList());
+    list.forEach(System.out::println);
+
+    /*
+    Collectors.toList() 其实是一个封装，
+    arg1返回的容器，对于并行操作来说，这个函数可能会被多次调用，并且每一次调用都返回新的、完全不同的值
+    arg2对集合中的每一个元素进行的操作，一个相关联的、无状态的函数，用于将额外的元素合并到结果当中，即arg1返回的结果
+    arg3合并子集，无状态、相关的一个函数，用于合并两个值，这两个值必须是与arg2所兼容的。
+    即使用arg1创建一个容器；
+    arg2将stream中的每一个元素进行操作后合并到容器中，每一次添加都会调用arg1生成一个容器，即每一次添加都是加到不同的容器中；（并行操作）
+    arg3将arg2生成的所有中间容器添加到最后要返回的容器中
+    */
+    List<String> list1 = stream.collect(() -> new ArrayList<>(), (theList, element) -> theList.add(element),
+        (theList1, theList2) -> theList1.addAll(theList2));
+    List<String> list2 = stream.collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+}
+
+7.	Lambda表达式到底是什么
+1)	函数式编程就根本的一点就是它通过方法传递的是一种行为，函数处理的这一方，收到这种行为之后，就根据传递的行为对响应的数据进行加工。以前传统的面向对象的编程，传递的都是数据。
+2)	
+8.	
+
